@@ -4,11 +4,11 @@ pragma solidity ^0.8.20;
 /*
     CarbonCreditCoinSupreme.sol
 
-    Arquivo único para GitHub + Remix
+    Versão revisada para GitHub + Remix
     - ERC20 principal CCC
-    - Governança centralizada em uma master única
+    - Governança centralizada em uma master definida no deploy
     - Registro declarativo institucional
-    - Catálogo de tokens/contratos externos
+    - Catálogo manual de tokens/contratos externos
     - Registro de documentos/hashes
 */
 
@@ -41,8 +41,6 @@ contract CarbonCreditCoinSupreme is ERC20, ERC20Burnable, AccessControl, Pausabl
     uint256 public constant USD_REFERENCE_PER_CCC_6 = 1_000_000; // US$1.00 com 6 casas
     uint256 public constant KG_CO2_PER_CCC = 164;
     uint256 public constant KG_PER_TON = 1000;
-
-    address public constant INITIAL_MASTER = 0xa14859FdF36c6E077ad7ABa88887317D28544fc4;
 
     address public masterAccount;
     address public treasury;
@@ -226,18 +224,20 @@ contract CarbonCreditCoinSupreme is ERC20, ERC20Burnable, AccessControl, Pausabl
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
-    constructor() ERC20(TOKEN_NAME, TOKEN_SYMBOL) {
-        masterAccount = INITIAL_MASTER;
-        treasury = INITIAL_MASTER;
-        operator = INITIAL_MASTER;
+    constructor(address initialMaster) ERC20(TOKEN_NAME, TOKEN_SYMBOL) {
+        require(initialMaster != address(0), "CCC: zero master");
 
-        _grantRole(DEFAULT_ADMIN_ROLE, INITIAL_MASTER);
-        _grantRole(PAUSER_ROLE, INITIAL_MASTER);
-        _grantRole(MINTER_ROLE, INITIAL_MASTER);
-        _grantRole(OPERATOR_ROLE, INITIAL_MASTER);
-        _grantRole(TREASURY_ROLE, INITIAL_MASTER);
+        masterAccount = initialMaster;
+        treasury = initialMaster;
+        operator = initialMaster;
 
-        _mint(INITIAL_MASTER, MAX_SUPPLY);
+        _grantRole(DEFAULT_ADMIN_ROLE, initialMaster);
+        _grantRole(PAUSER_ROLE, initialMaster);
+        _grantRole(MINTER_ROLE, initialMaster);
+        _grantRole(OPERATOR_ROLE, initialMaster);
+        _grantRole(TREASURY_ROLE, initialMaster);
+
+        _mint(initialMaster, MAX_SUPPLY);
 
         projectMetadata = ProjectMetadata({
             projectName: "Carbon Credit Coin",
@@ -271,7 +271,7 @@ contract CarbonCreditCoinSupreme is ERC20, ERC20Burnable, AccessControl, Pausabl
             maturityText: "",
             declaredBackingUSD_6: 20_000_000_000 * 1_000_000,
             declaredCarbonKg: 20_000_000_000 * 164,
-            declaredCarbonTons_3: 20_000_000_000 * 164,
+            declaredCarbonTons_3: 3_280_000_000 * 1000, // 3.28 bilhões de toneladas com 3 casas
             declaredCustodyActive: false,
             declaredAuditActive: false,
             declaredValidationActive: false,
@@ -656,56 +656,14 @@ contract CarbonCreditCoinSupreme is ERC20, ERC20Burnable, AccessControl, Pausabl
         require(!bootstrapExecuted, "CCC: bootstrap already executed");
         bootstrapExecuted = true;
 
-        // Tokens externos
-        addExternalToken(0xdAC17F958D2ee523a2206206994597C13D831ec7, "ERC20", "Tether USD (USDT)", true);
-        addExternalToken(0x495f947276749Ce646f68AC8c248420045cb7b5e, "ERC1155", "OpenSea Shared Storefront", true);
-        addExternalToken(0x58b6A8A3302369DAEc383334672404Ee733aB239, "ERC20", "Livepeer Token (LPT)", true);
-        addExternalToken(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, "ERC20", "USD Coin (USDC)", true);
-        addExternalToken(0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE, "ERC20", "Shiba Inu (SHIB)", true);
-        addExternalToken(0xC12D1c73eE7DC3615BA4e37E4ABFdbDDFA38907E, "ERC20", "KickToken (KICK)", true);
-        addExternalToken(0x426CA1eA2406c07d75Db9585F22781c096e3d0E0, "ERC20", "External Token 01", true);
-        addExternalToken(0xc92e74b131D7b1D46E60e07F3FaE5d8877Dd03F0, "ERC20", "External Token 02", true);
-        addExternalToken(0x7B2f9706CD8473B4F5B7758b0171a9933Fc6C4d6, "ERC20", "External Token 03", true);
-        addExternalToken(0xf230b790E05390FC8295F4d3F60332c93BEd42e2, "ERC20", "External Token 04", true);
-        addExternalToken(0x519475b31653E46D20cD09F9FdcF3B12BDAcB4f5, "ERC20", "External Token 05", true);
-        addExternalToken(0x52903256dd18D85c2Dc4a6C999907c9793eA61E3, "ERC20", "External Token 06", true);
-        addExternalToken(0xa3EE21C306A700E682AbCdfe9BaA6A08F3820419, "ERC20", "External Token 07", true);
-        addExternalToken(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, "ERC20", "Wrapped Ether (WETH)", true);
-        addExternalToken(0xab95E915c123fdEd5BDfB6325e35ef5515F1EA69, "ERC20", "External Token 08", true);
-        addExternalToken(0x6130a0C4eB9eA062fC10df5C564149Da1d86565F, "ERC20", "External Token 09", true);
-        addExternalToken(0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85, "ERC20", "External Token 10", true);
-        addExternalToken(0xd26114cd6EE289AccF82350c8d8487fedB8A0C07, "ERC20", "OmiseGO (OMG)", true);
-        addExternalToken(0x514910771AF9Ca656af840dff83E8264EcF986CA, "ERC20", "Chainlink (LINK)", true);
-        addExternalToken(0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0, "ERC20", "Polygon (MATIC)", true);
-        addExternalToken(0xfaaFDc07907ff5120a76b34b731b278c38d6043C, "ERC20", "External Token 11", true);
-        addExternalToken(0x6B175474E89094C44Da98b954EedeAC495271d0F, "ERC20", "Dai Stablecoin (DAI)", true);
-        addExternalToken(0xF3e014fE81267870624132ef3A646B8E83853a96, "ERC20", "External Token 12", true);
-        addExternalToken(0x151BC71a40c56C7cB3317d86996fd0b4fF9bD907, "ERC20", "External Token 13", true);
-        addExternalToken(0xD736915F7d9F70a0F1837F90aa7b437264C20dc0, "ERC20", "External Token 14", true);
-        addExternalToken(0xA0b73E1Ff0B80914AB6fe0444E65848C4C34450b, "ERC20", "External Token 15", true);
-        addExternalToken(0xa342f5D851E866E18ff98F351f2c6637f4478dB5, "ERC20", "External Token 16", true);
-        addExternalToken(0xD4307E0acD12CF46fD6cf93BC264f5D5D1598792, "ERC20", "External Token 17", true);
-        addExternalToken(0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39, "ERC20", "HEX", true);
-
-        // Contratos externos
-        addExternalContract(0x2170ed0880ac9a755fd29b2688956bd959f933f8, "External Contract A", "ERC20/Bridge Asset", true);
-        addExternalContract(0xf3162950df0b4ba17a65fb7a5dd7dff3c91ef190, "External Contract B", "External Contract", true);
-        addExternalContract(0x1b1979f530c0a93c68f57f412c97bf0fd5e69046, "External Contract C", "External Contract", true);
-        addExternalContract(0x84d7cd12a950e1260ec9eaa96eb5dce4417be1cf, "External Contract D", "External Contract", true);
-        addExternalContract(0x372101cf57206ab06c924012df905e82a66ec71a, "External Contract E", "External Contract", true);
-        addExternalContract(0xba12222222228d8ba445958a75a0704d566bf2c8, "Balancer Vault", "Vault", true);
-        addExternalContract(0x109830a1aaad605bbf02a9dfa7b0b92ec2fb7daa, "External Contract F", "External Contract", true);
-        addExternalContract(0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0, "External Contract G", "External Contract", true);
-        addExternalContract(0x5a52e96bacdabb82fd05763e25335261b270efcb, "External Contract H", "External Contract", true);
-        addExternalContract(0x7473670070f2adeee5edb9e3f6e1ee6480e66de1, "External Contract I", "External Contract", true);
-        addExternalContract(0x835678a611b28684005a5e2233695fb6cbbb0007, "External Contract J", "External Contract", true);
-        addExternalContract(0xf977814e90da44bfa03b6295a0616a897441acec, "External Contract K", "Custodial/Exchange Address", true);
-        addExternalContract(0x6c96de32cea08842dcc4058c14d3aaad7fa41dee, "External Contract L", "External Contract", true);
-
-        // Endereços monitorados
-        addWatchedAddress(INITIAL_MASTER, "CCC Master Wallet", "master", true);
-        addWatchedAddress(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, "Watched Wallet 01", "wallet", true);
-        addWatchedAddress(0x15d34aaf54267db7d7c367839aaf71a00a2c6a65, "Watched Wallet 02", "wallet", true);
+        // Mantido propositalmente vazio para evitar:
+        // - erros de checksum
+        // - bytecode excessivo
+        // - deploy mais caro
+        // Cadastre depois manualmente usando:
+        // addExternalToken(...)
+        // addExternalContract(...)
+        // addWatchedAddress(...)
     }
 
     // =========================================================
